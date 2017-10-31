@@ -60,6 +60,7 @@ static const AVCodecTag flv_audio_codec_ids[] = {
     { AV_CODEC_ID_PCM_MULAW,  FLV_CODECID_PCM_MULAW  >> FLV_AUDIO_CODECID_OFFSET },
     { AV_CODEC_ID_PCM_ALAW,   FLV_CODECID_PCM_ALAW   >> FLV_AUDIO_CODECID_OFFSET },
     { AV_CODEC_ID_SPEEX,      FLV_CODECID_SPEEX      >> FLV_AUDIO_CODECID_OFFSET },
+	{ AV_CODEC_ID_OPUS,       FLV_CODECID_OPUS       >> FLV_AUDIO_CODECID_OFFSET },
     { AV_CODEC_ID_NONE,       0 }
 };
 
@@ -132,6 +133,10 @@ static int get_audio_flags(AVFormatContext *s, AVCodecParameters *par)
     if (par->codec_id == AV_CODEC_ID_AAC) // specs force these parameters
         return FLV_CODECID_AAC | FLV_SAMPLERATE_44100HZ |
                FLV_SAMPLESSIZE_16BIT | FLV_STEREO;
+    else if (par->codec_id == AV_CODEC_ID_OPUS) {
+    		return FLV_CODECID_OPUS | FLV_SAMPLERATE_44100HZ |
+    				FLV_SAMPLESSIZE_16BIT | FLV_STEREO;
+    }
     else if (par->codec_id == AV_CODEC_ID_SPEEX) {
         if (par->sample_rate != 16000) {
             av_log(s, AV_LOG_ERROR,
@@ -485,8 +490,10 @@ static void flv_write_codec_header(AVFormatContext* s, AVCodecParameters* par) {
     AVIOContext *pb = s->pb;
     FLVContext *flv = s->priv_data;
 
-    if (par->codec_id == AV_CODEC_ID_AAC || par->codec_id == AV_CODEC_ID_H264
-            || par->codec_id == AV_CODEC_ID_MPEG4) {
+    if (par->codec_id == AV_CODEC_ID_AAC
+    			|| par->codec_id == AV_CODEC_ID_OPUS
+    			|| par->codec_id == AV_CODEC_ID_H264
+			|| par->codec_id == AV_CODEC_ID_MPEG4) {
         int64_t pos;
         avio_w8(pb,
                 par->codec_type == AVMEDIA_TYPE_VIDEO ?
@@ -529,6 +536,8 @@ static void flv_write_codec_header(AVFormatContext* s, AVCodecParameters* par) {
                         data[0], data[1]);
             }
             avio_write(pb, par->extradata, par->extradata_size);
+        } else if (par->codec_id == AV_CODEC_ID_OPUS) {
+        		avio_w8(pb, get_audio_flags(s, par));
         } else {
             avio_w8(pb, par->codec_tag | FLV_FRAME_KEY); // flags
             avio_w8(pb, 0); // AVC sequence header
