@@ -102,6 +102,7 @@ enum {
 };
 
 enum {
+	FLV_CODECID_VP8     = 1,
     FLV_CODECID_H263    = 2,
     FLV_CODECID_SCREEN  = 3,
     FLV_CODECID_VP6     = 4,

@@ -286,6 +286,8 @@ static int flv_same_video_codec(AVCodecParameters *vpar, int flags)
         return 1;
 
     switch (flv_codecid) {
+    case FLV_CODECID_VP8:
+    		return vpar->codec_id == AV_CODEC_ID_VP8;
     case FLV_CODECID_H263:
         return vpar->codec_id == AV_CODEC_ID_FLV1;
     case FLV_CODECID_SCREEN:
@@ -316,6 +318,9 @@ static int flv_set_video_codec(AVFormatContext *s, AVStream *vstream,
     case FLV_CODECID_REALH263:
         par->codec_id = AV_CODEC_ID_H263;
         break; // Really mean it this time
+    case FLV_CODECID_VP8:
+    		par->codec_id = AV_CODEC_ID_VP8;
+    		break;
     case FLV_CODECID_SCREEN:
         par->codec_id = AV_CODEC_ID_FLASHSV;
         break;

@@ -46,6 +46,7 @@ static const AVCodecTag flv_video_codec_ids[] = {
     { AV_CODEC_ID_VP6,      FLV_CODECID_VP6 },
     { AV_CODEC_ID_VP6A,     FLV_CODECID_VP6A },
     { AV_CODEC_ID_H264,     FLV_CODECID_H264 },
+    { AV_CODEC_ID_VP8,      FLV_CODECID_VP8},
     { AV_CODEC_ID_NONE,     0 }
 };
 
@@ -493,7 +494,8 @@ static void flv_write_codec_header(AVFormatContext* s, AVCodecParameters* par) {
     if (par->codec_id == AV_CODEC_ID_AAC
     			|| par->codec_id == AV_CODEC_ID_OPUS
     			|| par->codec_id == AV_CODEC_ID_H264
-			|| par->codec_id == AV_CODEC_ID_MPEG4) {
+			|| par->codec_id == AV_CODEC_ID_MPEG4
+			|| par->codec_id == AV_CODEC_ID_VP8) {
         int64_t pos;
         avio_w8(pb,
                 par->codec_type == AVMEDIA_TYPE_VIDEO ?
@@ -538,7 +540,9 @@ static void flv_write_codec_header(AVFormatContext* s, AVCodecParameters* par) {
             avio_write(pb, par->extradata, par->extradata_size);
         } else if (par->codec_id == AV_CODEC_ID_OPUS) {
         		avio_w8(pb, get_audio_flags(s, par));
-        } else {
+        } else if (par->codec_id == AV_CODEC_ID_VP8) {
+        		avio_w8(pb, par->codec_tag | FLV_FRAME_KEY); // flags
+        }else {
             avio_w8(pb, par->codec_tag | FLV_FRAME_KEY); // flags
             avio_w8(pb, 0); // AVC sequence header
             avio_wb24(pb, 0); // composition time
